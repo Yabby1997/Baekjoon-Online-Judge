@@ -14,7 +14,4 @@ Baekjoon Online Judge is South Korean online judge site.
 + *.cpp : C++ language solution of problem number *
 + *.java : Java language solution of problem number *
 + *.py : Python3 language solution of problem number *
-+ *.
-
-
-
++ *.swift : Swift language solution of problem number * 
