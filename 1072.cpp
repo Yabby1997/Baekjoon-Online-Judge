@@ -2,26 +2,44 @@
 
 using namespace std;
 
-int calcWinningRatio(int wins, int games);
+long long games, wins, winRatio;
+
+void input();
+void solve();
+long long getRatio(long long wins, long long games);
+int binarySearch(int left, int right);
 
 int main(){
-	int games, wins, initialWinningRatio, targetWinningRatio;
-	scanf("%d %d", &games, &wins);
-	
-	if(games == wins){
-		printf("-1\n");
-		return 0;
-	}
-
-	initialWinningRatio = calcWinningRatio(wins, games);
-	int i = 1;
-	while(calcWinningRatio(wins + i, games + i) != initialWinningRatio + 1){
-		i ++;
-	}
-	printf("%d\n", i);
-	return 0;
+    input();
+    solve();
+    return 0;
 }
 
-int calcWinningRatio(int wins, int games){
-	return (int)((float)wins/(float)games * 100);
+void input(){
+    scanf("%lld %lld", &games, &wins);
+    winRatio = getRatio(wins, games);
+}
+
+long long getRatio(long long wins, long long games){
+    return (wins * 100) / games;
+}
+
+void solve(){
+    printf("%d\n", winRatio < 99 ? binarySearch(1, 1000000000) : -1);
+}
+
+int binarySearch(int left, int right){
+    int result = -1;
+    while(left <= right){
+        int mid = (right + left) / 2;
+        long long midRatio = getRatio(wins + mid, games + mid);
+        if(midRatio > winRatio){
+            right = mid - 1;
+            result = mid;
+        }
+        else{
+            left = mid + 1;
+        }
+    }
+    return result;
 }
