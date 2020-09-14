@@ -2,99 +2,92 @@
 #include <vector>
 #include <cmath>
 
+#define leftChild(parentNode) parentNode * 2
+#define rightChild(parentNode) parentNode * 2 + 1
+
 using namespace std;
 
-vector<long long> tree;
-vector<long long> numbers;
+vector<long long> segmentTree;
+vector<long long> numbers = {-1, };
 
 int numOfNumbers, numOfChanges, numOfCalculations, lengthOfTree;
 
-void inputNumbers();
+void input();
 void solve();
-long long init(int node, int start, int end);
-long long sum(int node, int start, int end, int left, int right);
-void update(int targetIndex, int node, int start, int end, long long diff);
-int leftChild(int parent);
-int rightChild(int parent);
-void showTree();
+long long initTreeNode(int node, int from, int to);
+long long sum(int node, int from, int to, int left, int right);
+void updateTree(int node, int from, int to, int index, long long diff);
 
 int main(){
-    inputNumbers();
+    input();
     solve();
     return 0;
 }
 
-void inputNumbers(){
+void input(){
     scanf("%d %d %d", &numOfNumbers, &numOfChanges, &numOfCalculations);
-    lengthOfTree = 1<<((int)ceil(log2(numOfNumbers)) + 1);
-    tree = vector<long long>(lengthOfTree, 0);
+    lengthOfTree = 1 << ((int)ceil(log2(numOfNumbers)) + 1);
+    segmentTree = vector<long long>(lengthOfTree, 0);
     for(int i = 0; i < numOfNumbers; i++){
         long long number;
         scanf("%lld", &number);
         numbers.push_back(number);
     }
-    init(1, 0, numOfNumbers-1);
-}
-
-long long init(int node, int start, int end){
-    if (start == end)
-        tree[node] = numbers[start];
-    else{
-        int mid = (start + end) / 2;
-        tree[node] = init(leftChild(node), start, mid) + init(rightChild(node), mid + 1, end);
-    }
-    return tree[node];
+    initTreeNode(1, 1, numOfNumbers);
 }
 
 void solve(){
     while(numOfChanges != 0 || numOfCalculations != 0){
-        int command, a;
-        long long b;
-        scanf("%d %d %lld", &command, &a, &b);
+        int command;
+        scanf("%d", &command);
         if(command == 1 && numOfChanges != 0){
-            update(a - 1, 1, 0, numOfNumbers - 1, b - numbers[a - 1]);
+            int index;
+            long long value;
+            scanf("%d %lld", &index, &value);
+            updateTree(1, 1, numOfNumbers, index, value - numbers[index]);
             numOfChanges--;
         }
         else if(command == 2 && numOfCalculations != 0){
-            printf("%lld\n", sum(1, 0, numOfNumbers - 1, a - 1, (int)(b - 1)));
+            int from, to;
+            scanf("%d %d", &from, &to);
+            printf("%lld\n", sum(1, 1, numOfNumbers, from, to));
             numOfCalculations--;
         }
     }
 }
 
-void update(int targetIndex, int node, int start, int end, long long diff){
-    if (targetIndex < start || targetIndex > end)
+long long initTreeNode(int node, int from, int to){
+    if (from == to)
+        segmentTree[node] = numbers[from];
+    else{
+        int mid = (from + to) / 2;
+        segmentTree[node] = initTreeNode(leftChild(node), from, mid) + initTreeNode(rightChild(node), mid + 1, to);
+    }
+    return segmentTree[node];
+}
+
+void updateTree(int node, int from, int to, int index, long long diff){
+    if (index < from || index > to)
         return;
     
-    tree[node] += diff;
-    
-    if (start != end){
-        int mid = (start+end) / 2;
-        update(targetIndex, leftChild(node), start, mid, diff);
-        update(targetIndex, rightChild(node), mid+1, end, diff);
+    segmentTree[node] += diff;
+    if (from != to){
+        int mid = (from + to) / 2;
+        updateTree(leftChild(node), from, mid, index, diff);
+        updateTree(rightChild(node), mid+1, to, index, diff);
     }
-    //원본값을 수정해주지 않으면 다음 계산에서 오류가 발생한다.
-    else if(start == end){
-        numbers[start] += diff;
-    }
+    else
+        numbers[from] += diff;
 }
 
-long long sum(int node, int start, int end, int left, int right){
-    if (start > right || end < left)
+long long sum(int node, int from, int to, int rangeFrom, int rangeTo){
+    if (from > rangeTo || to < rangeFrom)
         return 0;
-    else if (start >= left && end <= right)
-        return tree[node];
+    else if (from >= rangeFrom && to <= rangeTo)
+        return segmentTree[node];
     else {
-        int mid = (start+end) / 2;
-        return sum(leftChild(node), start, mid, left, right) + sum(rightChild(node), mid+1, end, left, right);
+        int mid = (from + to) / 2;
+        return sum(leftChild(node), from, mid, rangeFrom, rangeTo) + sum(rightChild(node), mid+1, to, rangeFrom, rangeTo);
     }
-}
-
-int leftChild(int parent){
-    return parent * 2;
-}
-
-int rightChild(int parent){
-    return parent * 2 + 1;
 }
 
