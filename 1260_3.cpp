@@ -1,6 +1,7 @@
 #include<stdio.h>
 #include<vector>
 #include<deque>
+#include<queue>
 #include<algorithm>
 
 using namespace std;
@@ -10,13 +11,13 @@ vector<vector<int>> adjacencyList(1001, vector<int>());
 vector<bool> visited(1001, false);
 
 void input();
-void DFS();
+void DFS(int current);
 void BFS();
 void clear();
 
 int main(){
     input();
-    DFS();
+    DFS(startingVertex);
     clear();
     BFS();
 }
@@ -34,31 +35,30 @@ void input(){
     }
 }
 
-void DFS(){
-    deque<int> queue;
-    queue.push_front(startingVertex);
-    while(queue.size() != 0){
-        int current = queue.front();
-        queue.pop_front();
-        if(visited[current])
-            continue;
-        printf("%d ", current);
-        visited[current] = true;
-        queue.insert(queue.begin(), adjacencyList[current].begin(), adjacencyList[current].end());
+void DFS(int current){
+    printf("%d ", current);
+    visited[current] = true;
+    for(int i = 0; i < adjacencyList[current].size(); i++){
+        int next = adjacencyList[current][i];
+        if(!visited[next])
+            DFS(next);
     }
 }
 
 void BFS(){
-    deque<int> queue;
-    queue.push_front(startingVertex);
-    while(queue.size() != 0){
-        int current = queue.front();
-        queue.pop_front();
+    queue<int> tempQueue;
+    tempQueue.push(startingVertex);
+    while(!tempQueue.empty()){
+        int current = tempQueue.front();
+        tempQueue.pop();
         if(visited[current])
             continue;
         printf("%d ", current);
         visited[current] = true;
-        queue.insert(queue.end(), adjacencyList[current].begin(), adjacencyList[current].end());
+        for(int i = 0; i < adjacencyList[current].size(); i++){
+            if(!visited[adjacencyList[current][i]])
+                tempQueue.push(adjacencyList[current][i]);
+        }
     }
 }
 
@@ -68,3 +68,4 @@ void clear(){
     }
     printf("\n");
 }
+
