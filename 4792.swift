@@ -99,8 +99,35 @@ var numOfVertices = 0
 var numOfEdges = 0
 var givenNumOfBlueEdges = 0
 
+func inputToIntArray() -> [Int] {
+    let asciiArray = readLine()!.compactMap({$0.asciiValue})
+    var currentIndex = asciiArray.count - 1
+    var currentValue = 0
+    var currentPlace = 1
+    var resulrArray = [Int]()
+    
+    while true {
+        while asciiArray[currentIndex] != 32 {
+            currentValue += currentPlace * Int(asciiArray[currentIndex] - 48)
+            currentPlace *= 10
+            currentIndex -= 1
+            if currentIndex < 0 {
+                break
+            }
+        }
+        resulrArray.append(currentValue)
+        currentIndex -= 1
+        if currentIndex < 0  {
+            break
+        }
+        currentValue = 0
+        currentPlace = 1
+    }
+    return resulrArray.reversed()
+}
+
 while true {
-    let input = readLine()!.split(separator: " ").map({Int(String($0))!})
+    let input = inputToIntArray()
     numOfVertices = input[0]
     numOfEdges = input[1]
     givenNumOfBlueEdges = input[2]
@@ -112,12 +139,12 @@ while true {
     }
     
     for _ in 0..<numOfEdges {
-        let eachEdgeInfo = readLine()!.split(separator: " ").map({String($0)})
+        let eachEdgeInfo = inputToIntArray()
         let colorOfEdge = eachEdgeInfo[0]
-        let from = Int(eachEdgeInfo[1])!
-        let to = Int(eachEdgeInfo[2])!
+        let from = eachEdgeInfo[1]
+        let to = eachEdgeInfo[2]
         
-        if colorOfEdge == "B" {
+        if colorOfEdge == 18 {
             adjacencyList[from].append(EdgeData(to: to, cost: 1))
             adjacencyList[to].append(EdgeData(to: from, cost: 1))
         } else {
