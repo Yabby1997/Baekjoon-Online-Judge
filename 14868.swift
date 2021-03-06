@@ -1,143 +1,110 @@
-import Foundation
+#include<stdio.h>
+#include<vector>
+#include<queue>
 
-class Area {
-    var x: Int
-    var y: Int
-    
-    init(x: Int, y: Int) {
-        self.x = x
-        self.y = y
+using namespace std;
+
+void input();
+void spreadBFS();
+void mergeBFS();
+void showMap();
+int find(int civ);
+void merge(int civA, int civB);
+
+int width = 0, numOfCivs = 0, years = 0, remaining = 0;
+vector<int> xDirection = {-1, 1, 0, 0};
+vector<int> yDirection = {0, 0, -1, 1};
+vector<int> actualCiv;
+queue<pair<int, int>> mergeQueue;
+queue<pair<int, int>> spreadQueue;
+vector<vector<int>> map(2001, vector<int>(2001, -1));
+
+int main() {
+    input();
+    while(true) {
+        mergeBFS();
+        if(remaining == 1) {
+            break;
+        }
+        spreadBFS();
+        years += 1;
+        printf("%d %d\n", remaining, years);
+    }
+    printf("%d\n", years);
+    return 0;
+}
+
+void input() {
+    scanf("%d %d", &width, &numOfCivs);
+    remaining = numOfCivs;
+    for(int i = 0; i < numOfCivs; i++) {
+        int x, y;
+        scanf("%d %d", &x, &y);
+        mergeQueue.push(make_pair(x, y));
+        map[x][y] = i;
+        actualCiv.push_back(i);
     }
 }
 
-struct Queue<T> {
-    var list: [T]
-    
-    func size() -> Int {
-        return list.count
-    }
-    
-    func isEmpty() -> Bool {
-        return size() == 0
-    }
-    
-    func peak() -> T? {
-        if isEmpty() {
-            return nil
-        } else {
-            return list[0]
+void mergeBFS() {
+    while(!mergeQueue.empty()) {
+        int currentX = mergeQueue.front().first;
+        int currentY = mergeQueue.front().second;
+        mergeQueue.pop();
+        int currentCiv = map[currentX][currentY];
+        spreadQueue.push(make_pair(currentX, currentY));
+        
+        for(int i = 0; i < 4; i++) {
+            int nextX = currentX + xDirection[i];
+            int nextY = currentY + yDirection[i];
+            
+            if(nextX < 1 || nextX > width || nextY < 1 || nextY > width)
+                continue;
+            
+            int nextCiv = map[nextX][nextY];
+            if(nextCiv == -1 || find(currentCiv) == find(nextCiv))
+                continue;
+            
+            merge(currentCiv, nextCiv);
         }
     }
-    
-    mutating func enqueue(_ element: T) {
-        list.append(element)
-    }
-    
-    mutating func dequeue() -> T? {
-        if isEmpty() {
-            return nil
-        } else {
-            return list.removeFirst()
-        }
-    }
 }
 
-let xDirections = [1, -1, 0, 0]
-let yDirections = [0, 0, 1, -1]
-
-let input = readLine()!.split(separator: " ").map({Int(String($0))!})
-let width = input[0]
-let numOfCivs = input[1]
-var remainingCivs = numOfCivs
-var civQueue = Array(repeating: Queue<Area>(list: []), count: numOfCivs)
-var map = Array(repeating: Array(repeating: -1, count: width + 1), count: width + 1)
-var civGroups = Array(repeating: -1, count: numOfCivs)
-var turns = 0
-var numOfTry = 0
-var currentTry = 0
-
-for civilizationNumber in 0..<numOfCivs {
-    let civilizationInfo = readLine()!.split(separator: " ").map({Int(String($0))!})
-    let x = civilizationInfo[0]
-    let y = civilizationInfo[1]
-    civQueue[civilizationNumber].enqueue(Area(x: x, y: y))
-    map[x][y] = civilizationNumber
-    civGroups[civilizationNumber] = civilizationNumber
-}
-
-while remainingCivs != 1 {
-    for number in 0..<numOfCivs {
-        BFS(civilization : number)
-    }
-    turns += 1
-}
-
-print(turns)
-
-
-func BFS(civilization number: Int) {
-    numOfTry = civQueue[number].size()
-    currentTry = 0
-    while currentTry < numOfTry {
-        currentTry += 1
-        let currentCivilizationNumber = civGroups[number]
-        let currentArea = civQueue[number].dequeue()!
-        let x = currentArea.x
-        let y = currentArea.y
-        for direction in 0..<xDirections.count {
-            let nextX = x + xDirections[direction]
-            let nextY = y + yDirections[direction]
+void spreadBFS() {
+    while(!spreadQueue.empty()) {
+        int currentX = spreadQueue.front().first;
+        int currentY = spreadQueue.front().second;
+        spreadQueue.pop();
+        int currentCiv = map[currentX][currentY];
+        
+        for(int i = 0; i < 4; i++) {
+            int nextX = currentX + xDirection[i];
+            int nextY = currentY + yDirection[i];
             
-            // 범위 밖이면 건너뛴다.
-            if nextX < 1 || nextX > width || nextY < 1 || nextY > width {
-                continue
-            }
+            if(nextX < 1 || nextX > width || nextY < 1 || nextY > width)
+                continue;
             
-            // 범위 내지만 동일 문명이면 건너뛴다.
-            let civilizationNumberOfNextArea = findParentCivilization(civilization: map[nextX][nextY])
-            if civilizationNumberOfNextArea == currentCivilizationNumber{
-                continue
-            }
-            
-            // 미개한 문명이라면 문명을 퍼뜨리고, 미개하지 않으면서 다른 문명이면 문명을 합치고 해당 문명 큐의것을 내 큐로 가져온다.
-            if civilizationNumberOfNextArea == -1 {
-                civQueue[number].enqueue(Area(x: nextX, y: nextY))
-                map[nextX][nextY] = currentCivilizationNumber
-                searchAndMerge(number: currentCivilizationNumber, x: nextX, y: nextY)
+            if(map[nextX][nextY] == -1){
+                map[nextX][nextY] = currentCiv;
+                mergeQueue.push(make_pair(nextX, nextY));
             }
         }
     }
 }
 
-func findParentCivilization(civilization number: Int) -> Int {
-    if number == -1 || civGroups[number] == number {
-        return number
+int find(int civ) {
+    if(actualCiv[civ] == civ) {
+        return civ;
     } else {
-        return findParentCivilization(civilization: civGroups[number])
+        return find(actualCiv[civ]);
     }
 }
 
-func searchAndMerge(number: Int, x: Int, y: Int) {
-    for direction in 0..<xDirections.count {
-        let nextX = x + xDirections[direction]
-        let nextY = y + yDirections[direction]
-        
-        // 범위 밖이면 건너뛴다.
-        if nextX < 1 || nextX > width || nextY < 1 || nextY > width {
-            continue
-        }
-        
-        // 범위 내지만 동일 문명이면 건너뛴다.
-        let civilizationNumberOfNextArea = findParentCivilization(civilization: map[nextX][nextY])
-        if civilizationNumberOfNextArea == number{
-            continue
-        }
-        
-        // 다른 문명이면 문명을 합치고 해당 문명 큐의것을 내 큐로 가져온다.
-        if civilizationNumberOfNextArea != -1 {
-            remainingCivs -= 1
-            civGroups[civilizationNumberOfNextArea] = number
-        }
-    }
+void merge(int civA, int civB) {
+    int actualA = find(civA);
+    int actualB = find(civB);
+    
+    actualCiv[actualB] = actualA;
+    remaining -= 1;
 }
 
