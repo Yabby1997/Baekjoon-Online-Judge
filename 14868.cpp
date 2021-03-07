@@ -28,7 +28,6 @@ int main() {
         }
         spreadBFS();
         years += 1;
-        printf("%d %d\n", remaining, years);
     }
     printf("%d\n", years);
     return 0;
@@ -96,7 +95,7 @@ int find(int civ) {
     if(actualCiv[civ] == civ) {
         return civ;
     } else {
-        return find(actualCiv[civ]);
+        return actualCiv[civ] = find(actualCiv[civ]);
     }
 }
 
@@ -104,8 +103,9 @@ void merge(int civA, int civB) {
     int actualA = find(civA);
     int actualB = find(civB);
     
-    actualCiv[actualB] = actualA;
-    remaining -= 1;
+    if(actualA != actualB){
+        actualCiv[actualB] = actualA;
+        remaining -= 1;
+    }
 }
-
 
