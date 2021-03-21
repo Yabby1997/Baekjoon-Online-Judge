@@ -37,13 +37,13 @@ int main() {
     
 //    showMatrix(matrix);
 //    showMatrix(brokenMatrix);
-    if(resultUnbroken < resultBroken) {
-        cout<<resultUnbroken<<endl;
-    } else if(resultUnbroken > resultBroken) {
-        cout<<resultBroken<<endl;
-    } else {
+    
+    if(resultUnbroken == resultBroken && resultUnbroken == INF)
         cout<<-1<<endl;
-    }
+    else if(resultUnbroken <= resultBroken)
+        cout<<resultUnbroken<<endl;
+    else if(resultUnbroken > resultBroken)
+        cout<<resultBroken<<endl;
     
     return 0;
 }
@@ -69,17 +69,20 @@ void BFS() {
                 if(matrix[nextRow][nextCol] == -1) {
                     brokenMatrix[nextRow][nextCol] = matrix[currentRow][currentCol] + 1;
                     visitingQueue.push(make_pair(make_pair(nextRow, nextCol), false));
+//                    cout<<currentRow<<", "<<currentCol<<" -> "<<nextRow<<", "<<nextCol<<" break the wall. "<<brokenMatrix[nextRow][nextCol]<<endl;
                 }
                 // 벽 아니야
                 else if(matrix[currentRow][currentCol] + 1 < matrix[nextRow][nextCol]) {
                     matrix[nextRow][nextCol] = matrix[currentRow][currentCol] + 1;
                     visitingQueue.push(make_pair(make_pair(nextRow, nextCol), true));
+//                    cout<<currentRow<<", "<<currentCol<<" -> "<<nextRow<<", "<<nextCol<<" spread without breaking. "<<matrix[nextRow][nextCol]<<endl;
                 }
             }
             // 이제 더 못부숴
             else if(brokenMatrix[currentRow][currentCol] + 1 < brokenMatrix[nextRow][nextCol]) {
                 brokenMatrix[nextRow][nextCol] = brokenMatrix[currentRow][currentCol] + 1;
                 visitingQueue.push(make_pair(make_pair(nextRow, nextCol), false));
+//                cout<<currentRow<<", "<<currentCol<<" -> "<<nextRow<<", "<<nextCol<<" spread with no chance to break more walls. "<<brokenMatrix[nextRow][nextCol]<<endl;
             }
         }
     }
