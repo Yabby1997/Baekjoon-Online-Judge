@@ -1,19 +1,22 @@
 #include<iostream>
 #include<vector>
 #include<queue>
+#include<tuple>
 
 using namespace std;
 
-int INF = 200000000, height, width;
+int INF = 200000000, height, width, currentRow, currentCol;
+bool breakable;
 vector<vector<int>> matrix, brokenMatrix;
 vector<int> xDirection = {-1, 1, 0, 0};
 vector<int> yDirection = {0, 0, -1, 1};
-queue<pair<pair<int, int>, bool>> visitingQueue;
+queue<tuple<int, int, bool>> visitingQueue;
 
 void BFS();
-void showMatrix(vector<vector<int>> board);
 
 int main() {
+    ios::sync_with_stdio(0); cin.tie(0); cout.tie(0);
+    
     cin>>height>>width;
     
     for(int i = 0; i < height; i++) {
@@ -29,14 +32,11 @@ int main() {
     matrix[0][0] = 1;
     brokenMatrix = matrix;
     
-    visitingQueue.push(make_pair(make_pair(0, 0), true));
+    visitingQueue.emplace(0, 0, true);
     BFS();
     
     int resultUnbroken = matrix[height - 1][width - 1];
     int resultBroken = brokenMatrix[height - 1][width - 1];
-    
-//    showMatrix(matrix);
-//    showMatrix(brokenMatrix);
     
     if(resultUnbroken == resultBroken && resultUnbroken == INF)
         cout<<-1<<endl;
@@ -50,9 +50,7 @@ int main() {
 
 void BFS() {
     while(!visitingQueue.empty()) {
-        int currentRow = visitingQueue.front().first.first;
-        int currentCol = visitingQueue.front().first.second;
-        bool breakable = visitingQueue.front().second;
+        tie(currentRow, currentCol, breakable) = visitingQueue.front();
         visitingQueue.pop();
         
         for(int i = 0; i < 4; i++) {
@@ -63,39 +61,21 @@ void BFS() {
                 continue;
             }
             
-            // 한번 부술 수 있음
             if(breakable){
-                // 벽만났다
                 if(matrix[nextRow][nextCol] == -1) {
                     brokenMatrix[nextRow][nextCol] = matrix[currentRow][currentCol] + 1;
-                    visitingQueue.push(make_pair(make_pair(nextRow, nextCol), false));
-//                    cout<<currentRow<<", "<<currentCol<<" -> "<<nextRow<<", "<<nextCol<<" break the wall. "<<brokenMatrix[nextRow][nextCol]<<endl;
+                    visitingQueue.emplace(nextRow, nextCol, false);
                 }
-                // 벽 아니야
                 else if(matrix[currentRow][currentCol] + 1 < matrix[nextRow][nextCol]) {
                     matrix[nextRow][nextCol] = matrix[currentRow][currentCol] + 1;
-                    visitingQueue.push(make_pair(make_pair(nextRow, nextCol), true));
-//                    cout<<currentRow<<", "<<currentCol<<" -> "<<nextRow<<", "<<nextCol<<" spread without breaking. "<<matrix[nextRow][nextCol]<<endl;
+                    visitingQueue.emplace(nextRow, nextCol, true);
                 }
             }
-            // 이제 더 못부숴
             else if(brokenMatrix[currentRow][currentCol] + 1 < brokenMatrix[nextRow][nextCol]) {
                 brokenMatrix[nextRow][nextCol] = brokenMatrix[currentRow][currentCol] + 1;
-                visitingQueue.push(make_pair(make_pair(nextRow, nextCol), false));
-//                cout<<currentRow<<", "<<currentCol<<" -> "<<nextRow<<", "<<nextCol<<" spread with no chance to break more walls. "<<brokenMatrix[nextRow][nextCol]<<endl;
+                visitingQueue.emplace(nextRow, nextCol, false);
             }
         }
     }
-}
-
-void showMatrix(vector<vector<int>> board) {
-    for(int i = 0; i < board.size(); i++) {
-        for(int j = 0; j < board[i].size(); j++) {
-            char cell = board[i][j] == INF ? '.' : board[i][j] == -1 ? 'X' : 'O';
-            cout<<cell<<" ";
-        }
-        cout<<endl;
-    }
-    cout<<"===="<<endl;
 }
 
