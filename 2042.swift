@@ -1,78 +1,71 @@
 import Foundation
 
-struct SegmentTree {
-    var numbers: [Int64]
-    var tree: [Int64]
-    
-    init(numbers: [Int64]) {
-        self.numbers = numbers
-        self.tree = Array(repeating: 0, count: 1 << (Int(ceil(log2(Double(numbers.count)))) + 1))
-        let _ = buildTree(from: 0, to: numbers.count - 1, index: 0)
-    }
-    
-    func leftChild(of index: Int) -> Int {
-        return index * 2 + 1
-    }
-    
-    func rightChild(of index: Int) -> Int {
-        return index * 2 + 2
-    }
-    
-    mutating func buildTree(from: Int, to: Int, index: Int) -> Int64 {
-        if from == to {
-            tree[index] = numbers[from]
-        } else {
-            let mid = (to + from) / 2
-            tree[index] = buildTree(from: from, to: mid, index: leftChild(of: index)) + buildTree(from: mid + 1, to: to, index: rightChild(of: index))
-        }
-        return tree[index]
-    }
-    
-    func sum(queryFrom: Int64, queryTo: Int64, currentFrom: Int, currentTo: Int, index: Int) -> Int64 {
-        if queryFrom <= currentFrom && currentTo <= queryTo {
-            return tree[index]
-        } else if currentFrom > queryTo || currentTo < queryFrom {
-            return 0
-        } else {
-            let mid = (currentTo + currentFrom) / 2
-            return sum(queryFrom: queryFrom, queryTo: queryTo, currentFrom: currentFrom, currentTo: mid, index: index * 2 + 1) + sum(queryFrom: queryFrom, queryTo: queryTo, currentFrom: mid + 1, currentTo: currentTo, index: index * 2 + 2)
-        }
-    }
-    
-    mutating func update(from: Int, to: Int, index: Int, target: Int, new: Int64) {
-        if target < from || target > to {
-            return
-        }
-        let difference = new - numbers[target]
-        tree[index] += difference
-        if from != to {
-            let mid = (from + to) / 2
-            update(from: from, to: mid, index: leftChild(of: index), target: target, new: new)
-            update(from: mid + 1, to: to, index: rightChild(of: index), target: target, new: new)
-        }
-        else {
-            numbers[from] += difference
-        }
-    }
-}
-
-var numbers: [Int64] = []
 let input = readLine()!.split(separator: " ").map({Int(String($0))!})
 let numOfNumbers = input[0]
-let numOfActions = input[1] + input[2]
+let numOfCommands = input[1] + input[2]
+
+var numbers: [Int64] = [0]
 
 for _ in 0..<numOfNumbers {
     numbers.append(Int64(readLine()!)!)
 }
 
-var segmentTree = SegmentTree(numbers: numbers)
+var segmentTree: [Int64] = Array(repeating: 0, count: 1 << Int(ceil(log2(Double(numOfNumbers))) + 1) - 1)
+let _ = initTree(currentFrom: 1, currentTo: numOfNumbers, currentIndex: 0)
 
-for _ in 0..<numOfActions {
-    let commands = readLine()!.split(separator: " ").map({Int64(String($0))!})
-
-    if commands[0] == 1 {
-        segmentTree.update(from: 0, to: numOfNumbers - 1, index: 0, target: Int(commands[1]) - 1, new: commands[2])
-    } else {
-        print(segmentTree.sum(queryFrom: commands[1] - 1, queryTo: commands[2] - 1, currentFrom: 0, currentTo: numOfNumbers - 1, index: 0))
+for _ in 0..<numOfCommands {
+    let command = readLine()!.split(separator: " ").map({Int64(String($0))!})
+    
+    if command[0] == 1 {
+        let target = Int(command[1])
+        let difference = command[2] - numbers[target]
+        numbers[target] = command[2]
+        update(currentFrom: 1, currentTo: numOfNumbers, target: target, currentIndex: 0, difference: difference)
+    } else if command[0] == 2 {
+        let from = Int(command[1])
+        let to = Int(command[2])
+        print(sum(from: from, to: to, currentFrom: 1, currentTo: numOfNumbers, currentIndex: 0))
     }
 }
+
+func leftChild(of index: Int) -> Int {
+    return index * 2 + 1
+}
+
+func rightChild(of index: Int) -> Int {
+    return index * 2 + 2
+}
+
+func initTree(currentFrom: Int, currentTo: Int, currentIndex: Int) -> Int64 {
+    if currentFrom == currentTo {
+        segmentTree[currentIndex] = numbers[currentFrom]
+    } else {
+        let mid = (currentFrom + currentTo) / 2
+        segmentTree[currentIndex] = initTree(currentFrom: currentFrom, currentTo: mid, currentIndex: leftChild(of: currentIndex)) + initTree(currentFrom: mid + 1, currentTo: currentTo, currentIndex: rightChild(of: currentIndex))
+    }
+    return segmentTree[currentIndex]
+}
+
+func sum(from: Int, to: Int, currentFrom: Int, currentTo: Int, currentIndex: Int) -> Int64 {
+    if from <= currentFrom && currentTo <= to {
+        return segmentTree[currentIndex]
+    } else if currentTo < from || currentFrom > to {
+        return 0
+    } else {
+        let mid = (currentFrom + currentTo) / 2
+        return sum(from: from, to: to, currentFrom: currentFrom, currentTo: mid, currentIndex: leftChild(of: currentIndex)) + sum(from: from, to: to, currentFrom: mid + 1, currentTo: currentTo, currentIndex: rightChild(of: currentIndex))
+    }
+}
+
+func update(currentFrom: Int, currentTo: Int, target: Int, currentIndex: Int, difference: Int64) {
+    if currentFrom <= target && target <= currentTo {
+        segmentTree[currentIndex] += difference
+        
+        if currentFrom != currentTo {
+            let mid = (currentFrom + currentTo) / 2
+            update(currentFrom: currentFrom, currentTo: mid, target: target, currentIndex: leftChild(of: currentIndex), difference: difference)
+            update(currentFrom: mid + 1, currentTo: currentTo, target: target, currentIndex: rightChild(of: currentIndex), difference: difference)
+        }
+    }
+}
+
