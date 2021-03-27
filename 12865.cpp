@@ -1,32 +1,42 @@
-#include<iostream>
+#include<stdio.h>
 #include<vector>
 
 using namespace std;
 
-int main(){
-	int n, k;
+int numOfItems, maximumWeight;
+vector<int> weightValueArray, copyOfWeightValueArray;
+int best = 0;
 
-	cin >> n >> k;
-	
-	int results[k + 1] = {0, };
-
-	for(int i = 0; i < n; i++){
-		int tempW, tempV;
-		cin >> tempW >> tempV;
-		results[tempW] = tempV;
-	}
-
-	for(int i = 1; i < k + 1; i++){
-		if(results[i] == 0)
-			continue;
-		for(int j = i + 1; j < k + 1; j++){
-			if(i + j <= k){
-				int newResult = results[i] + results[j];
-				if(results[i + j] < newResult)
-					results[i + j] = newResult;
-			}
-		}
-	}
-	cout << results[k];
+int main() {
+    scanf("%d %d", &numOfItems, &maximumWeight);
+    weightValueArray = vector<int>(maximumWeight + 1, 0);
+    copyOfWeightValueArray = weightValueArray;
+    
+    for(int i = 0; i < numOfItems; i++) {
+        int weight, value;
+        scanf("%d %d", &weight, &value);
+        
+        for(int j = 0; j <= maximumWeight; j++) {
+            int newWeight = j + weight;
+            
+            if(j + weight > maximumWeight) {
+                break;
+            }
+            
+            int newValue = weightValueArray[j] + value;
+            
+            if(copyOfWeightValueArray[newWeight] < newValue) {
+                copyOfWeightValueArray[newWeight] = newValue;
+                if(best < newValue) {
+                    best = newValue;
+                }
+            }
+        }
+        weightValueArray = copyOfWeightValueArray;
+    }
+    
+    printf("%d\n", best);
+    
+    return 0;
 }
 
